@@ -110,14 +110,13 @@ end_date = NULL
       data$Date_processed <- as.Date(Date, "%Y%m%d")
       
       
-      
       data2 <- data|>
         # Label the samples either eth_blank, fake samples, reservoir samples 
         # Some samples aren't labeled as eth_blanks in the ID so need to be labeled later in the script as well
-        mutate(samp_type = ifelse(grepl("et|blan|buff|filt", Sample.ID), "eth_blank",
+        mutate(samp_type = ifelse(grepl("et|blan|buff|blnk|filt", Sample.ID), "eth_blank",
                                   ifelse(grepl("fa", Sample.ID), "fake",
                                          ifelse(grepl("ref", Sample.ID), "ref", "res_samp"))),
-          # # samples are labeled "B" for abosorbance before adding acid to the sample. "A" is the absorbance after acid has been added. Label the samples so we can pick them out later. 
+          # # samples are labeled "B" for absorbance before adding acid to the sample. "A" is the absorbance after acid has been added. Label the samples so we can pick them out later. 
           #      timing = gsub("_","", gsub("[[:digit:]]", "", Sample.ID)),
           #      timing = ifelse(str_detect(Sample.ID,"b|B")==T,"b", 
           #                      ifelse(str_detect(Sample.ID, "a|A")==T, "a", timing)),
@@ -160,11 +159,10 @@ end_date = NULL
   
   ###THIS IS WHERE i WILL UPDATE HEADERS 
   rack_map2 <- rack_map %>% 
-    # make a new column that is just the number and no letters
     mutate(
       Num_ID = as.numeric(Num_ID),
-      #maybe manipulate date TO MAKE SURE IT'S IN THE RIGHT FORMAT
-      Vol_filt_mL = as.numeric(Vol_filt_mL)
+      Vol_filt_mL = as.numeric(Vol_filt_mL),
+      # New column based on Flask condition
     )
   #maybe check to see if i need to add flask and dose
 
@@ -271,7 +269,7 @@ end_date = NULL
    comb2 <- df3%>%
     mutate(
       Vol_filt_mL = ifelse(samp_type=="eth_blank", 500, Vol_filt_mL), 
-      Final_vol_extract_mL = ifelse(samp_type=="eth_blank",final_vol_extract, final_vol_extract) #I MAY HAVE MESSED THIS UP I AM A LITTLE CONFUSED I JUST PUT THEM AS THE SAME
+      Final_vol_extract_mL = ifelse(samp_type=="eth_blank",final_vol_extract, final_vol_extract) #Final_vol_extract_mL <- I MAY HAVE MESSED THIS UP I AM A LITTLE CONFUSED I JUST PUT THEM AS THE SAME
     )
   
   # List the Sample.IDs with no observations from the spec
@@ -295,36 +293,26 @@ end_date = NULL
   # Label the samples. 
   # samples are labeled "B" for abosorbance before adding acid to the sample. "A" is the absorbance after acid has been added. Label the samples so we can pick them out later. 
   
-  raw_df2 <- comb2|>
+  raw_df2 <- comb2 %>%
     mutate(
-  timing = gsub("_","", gsub("[[:digit:]]", "", Sample.ID)),
-  # check letter in Sample.ID. b is before acid. It can be at the beginning of the name, the end of the name, or after an underscore. Change here for if there is a different pattern. 
-  timing = ifelse(str_detect(Sample.ID,"^b|^B|b$|B$|_b|_B")==T,"b", 
-                  ifelse(str_detect(Sample.ID,"^a|^A|a$|A$|_a|_A")==T, "a", timing)))
- # samp_type = ifelse(grepl("et|blan|buff|filt", Sample.ID), "eth_blank",
- #                            ifelse(grepl("fa", Sample.ID), "fake",
- #                                   ifelse(grepl("ref", Sample.ID), "ref", "res_samp")))
- 
-# 
-# print("The following samples were diluted. Ensure the dilution factor is recorded in the rack map")
-# print(raw_df2 |>
-#         filter(dilution == "diluted") |> 
-#         select(c(Sample.ID, Date_processed, Sample_date, ResSite, Depth)))
-
- ## The following Samples don't have a numeric ID and will be dropped
-
-if(nrow(raw_df2|>filter(is.na(Num_ID)))>0){
-
-warning("The following samples don't have a numeric ID and will be dropped")
-
-print(raw_df2 |> 
-        filter(is.na(Num_ID))|>
-        select(Sample.ID, Date_processed, Num_ID))
-
-raw_df2 <- raw_df2|>
-  drop_na(Num_ID)
-}
-
+      timing = gsub("_", "", gsub("[[:digit:]]", "", Sample.ID)),
+      timing = ifelse(str_detect(Sample.ID, "^b|^B|b$|B$|_b|_B"), "b", 
+                      ifelse(str_detect(Sample.ID, "^a|^A|a$|A$|_a|_A"), "a", timing)),
+      Num_ID = ifelse(Sample.ID %in% c("blnk_b", "blnk_a"), 1, Num_ID), 
+      samp_type = ifelse(Sample.ID %in% c("blnk_b", "blnk_a", "1_b", "1_a"), "eth_blank", samp_type)
+    )
+  
+  # Now check for missing Num_ID and drop them
+  if (nrow(raw_df2 %>% filter(is.na(Num_ID))) > 0) {
+    warning("The following samples don't have a numeric ID and will be dropped")
+    
+    print(raw_df2 %>% 
+            filter(is.na(Num_ID)) %>%
+            select(Sample.ID, Date_processed, Num_ID))
+    
+    raw_df2 <- raw_df2 %>%
+      drop_na(Num_ID)
+  }
 
 ## Check the dups in the file and if there are dups rename them in the maintenance log
 
@@ -482,7 +470,7 @@ raw_df2 <- raw_df2|>
       
       # Chlorophyll a Conc of original water sample in ug/L (or mg/m3-same thing- APHA)
       
-      chla_in_water = (chla_extract*Final_vol_extract_mL/1000)/((Vol_filt_mL/1000)*1),
+      chla_in_water = (chla_extract*Final_vol_extract_mL/1000)/((Vol_filt_mL/1000)*1), 
       
       # Pheopigment Conc of original water sample in ug/L (or mg/m3-same thing- APHA)
       
