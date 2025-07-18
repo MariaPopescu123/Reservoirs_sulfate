@@ -510,6 +510,8 @@ raw_df2 <- raw_df2|>
       Pheo_ugL = pheo_in_water
     )
   
+  write.csv(chla_df, "Assay Experiment/csvs/Assay_1_chla.csv")
+  
   ####stopping here####
   
   
