@@ -269,7 +269,8 @@ end_date = NULL
    comb2 <- df3%>%
     mutate(
       Vol_filt_mL = ifelse(samp_type=="eth_blank", 500, Vol_filt_mL), 
-      Final_vol_extract_mL = ifelse(samp_type=="eth_blank",final_vol_extract, final_vol_extract) #Final_vol_extract_mL <- I MAY HAVE MESSED THIS UP I AM A LITTLE CONFUSED I JUST PUT THEM AS THE SAME
+      Final_vol_extract_mL = final_vol_extract,
+      Final_vol_extract_mL = ifelse(samp_type=="eth_blank",final_vol_extract, Final_vol_extract_mL) #Final_vol_extract_mL <- I MAY HAVE MESSED THIS UP I AM A LITTLE CONFUSED I JUST PUT THEM AS THE SAME
     )
   
   # List the Sample.IDs with no observations from the spec
