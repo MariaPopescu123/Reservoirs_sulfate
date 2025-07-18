@@ -47,7 +47,7 @@ start_date = NULL
 end_date = NULL
   
  #packages
-  pacman::p_load(tidyverse, gsheet,arsenal)
+  pacman::p_load(tidyverse, gsheet,arsenal, readxl)
   
   #### 1. Read in Maintenance file and the Raw files from the spec 
   ### 1.1 Read in Maintenance file #### 
@@ -153,7 +153,7 @@ end_date = NULL
   print("Read in rack map and join by Date Processed, Num_ID and dilution")
   
   #CHANGE THIS AS WELL TO BE ABLE TO READ IN RACK MAP 
-  library(readxl)
+
   rack_map <- read_excel(rack_map)
 
   
@@ -162,6 +162,7 @@ end_date = NULL
     mutate(
       Num_ID = as.numeric(Num_ID),
       Vol_filt_mL = as.numeric(Vol_filt_mL),
+      Final_vol_extract_mL = final_vol_extract
       # New column based on Flask condition
     )
   #maybe check to see if i need to add flask and dose
@@ -188,8 +189,8 @@ end_date = NULL
     #I REMOVED THIS PART FROM NOW BUT MAYBE I WILL NEED IT LATER
   # relabel ethanol blank samples so we can find them later
     mutate(
-      samp_type = ifelse(str_detect(Flask, "^et")==T, "eth_blank", 
-                         ifelse(str_detect(Flask, "blank")==T, "eth_blank", samp_type)))
+      samp_type = ifelse(str_detect(Flask, "^blank")==T & !is.na(Flask), "eth_blank", samp_type))
+                         #ifelse(str_detect(Flask, "^eth")==T, "eth_blank", samp_type)))
   
   
   # # Get sample dates in the right format
@@ -269,7 +270,7 @@ end_date = NULL
    comb2 <- df3%>%
     mutate(
       Vol_filt_mL = ifelse(samp_type=="eth_blank", 500, Vol_filt_mL), 
-      Final_vol_extract_mL = final_vol_extract,
+      
       Final_vol_extract_mL = ifelse(samp_type=="eth_blank",final_vol_extract, Final_vol_extract_mL) #Final_vol_extract_mL <- I MAY HAVE MESSED THIS UP I AM A LITTLE CONFUSED I JUST PUT THEM AS THE SAME
     )
   
@@ -299,6 +300,7 @@ end_date = NULL
       timing = gsub("_", "", gsub("[[:digit:]]", "", Sample.ID)),
       timing = ifelse(str_detect(Sample.ID, "^b|^B|b$|B$|_b|_B"), "b", 
                       ifelse(str_detect(Sample.ID, "^a|^A|a$|A$|_a|_A"), "a", timing)),
+      timing = ifelse(Sample.ID %in% "blnk_a", "a", timing),
       Num_ID = ifelse(Sample.ID %in% c("blnk_b", "blnk_a"), 1, Num_ID), 
       samp_type = ifelse(Sample.ID %in% c("blnk_b", "blnk_a", "1_b", "1_a"), "eth_blank", samp_type)
     )
@@ -373,7 +375,7 @@ raw_df2 <- raw_df2|>
                   "before_acid_abs_384" = "WL384.0"
     )|>
     unique() %>% 
-    select(Sample.ID, Date_processed, samp_type, Flask, Dose, Vol_filt_mL, Final_vol_extract_mL,
+    select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose, Vol_filt_mL, Final_vol_extract_mL,
            before_acid_abs_750:before_acid_abs_384, Flag_Chla_ugL, Flag_Pheo_ugL, Notes)
   
   #MAKE SURE ALL THESE LINE UP COLUMN NAMES
@@ -394,31 +396,31 @@ raw_df2 <- raw_df2|>
                   "after_acid_abs_384" = "WL384.0"
     )|>
     unique() %>% 
-    select(Sample.ID, Date_processed, samp_type, Flask, Dose,Vol_filt_mL, Final_vol_extract_mL,
+    select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose,Vol_filt_mL, Final_vol_extract_mL,
            after_acid_abs_750:after_acid_abs_384,Flag_Chla_ugL, Flag_Pheo_ugL, Notes)
   
   
   
   ### Add a check about if there are uneven before and after sample numbers
-  # check_bef <- before_comb2|>
-  #   select(Sample_ID, Date_processed, samp_type, ResSite, Depth, Rep, Sample_date, Vol_filt_mL, dil_factor)
-  # 
-  # check_aft <- after_comb2|>
-  #   select(Sample_ID, Date_processed, samp_type, ResSite, Depth, Rep, Sample_date, Vol_filt_mL, dil_factor)
-  # 
-  # check_df <- summary(arsenal::comparedf(check_bef, check_aft, by = c("Sample_ID", "Date_processed", "samp_type", "ResSite", "Depth", "Rep", "Sample_date", "Vol_filt_mL", "dil_factor")))
-  # 
+  check_bef <- before_comb2|>
+    select(Date_processed, samp_type,Flask, Dose, Date_processed, Vol_filt_mL)
+
+  check_aft <- after_comb2|>
+    select(Date_processed, samp_type,Flask, Dose, Date_processed, Vol_filt_mL)
+
+  check_df <- summary(arsenal::comparedf(check_bef, check_aft, by = c("Date_processed", "samp_type","Flask", "Dose", "Date_processed", "Vol_filt_mL")))
+
   
-  # if(nrow(check_df$obs.table)>0){
-  #   warning("There are uneven number of samples in the before or after data frames. Check the output to see where the issue is. There should be the same number of samples in each data frame.")
-  #   
-  #   print(check_df$obs.table)
-  # }
+  if(nrow(check_df$obs.table)>0){
+    warning("There are uneven number of samples in the before or after data frames. Check the output to see where the issue is. There should be the same number of samples in each data frame.")
+
+    print(check_df$obs.table)
+  }
   # 
   # Join the two data frames together
   
   comb3 <- full_join(before_comb2, after_comb2, 
-                     by=c("Sample.ID","Date_processed", "samp_type", "Flask", "Dose",
+                     by=c("Num_ID", "Date_processed", "samp_type", "Flask", "Dose",
                           "Vol_filt_mL", "Final_vol_extract_mL", "Flag_Chla_ugL", "Flag_Pheo_ugL", "Notes")) 
   
   ### 5.2 Calculate the concentration of Chla in ugL 
@@ -491,7 +493,7 @@ raw_df2 <- raw_df2|>
   # Take out the ethanol blank rows 
   chla_df<- comb5_calc %>%
     filter(samp_type!="eth_blank")%>%
-    select(Sample.ID,
+    select(Sample.ID.x,
            Flask,
            Dose,
            before_acid_abs_750,
