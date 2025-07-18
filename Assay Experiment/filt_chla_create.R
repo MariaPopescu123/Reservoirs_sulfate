@@ -27,12 +27,8 @@
 
 sulfate_chlorophyll_qaqc <- function(directory, 
                            rack_map,
-                           filtering_log,
                            final_vol_extract = 6, 
                            blank_vol_filt = 500, 
-                           maintenance_file,
-                           historic_file,
-                           sample_times,
                            outfile,
                            start_date,
                            end_date)
