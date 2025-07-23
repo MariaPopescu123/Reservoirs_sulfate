@@ -35,7 +35,7 @@ sulfate_chlorophyll_qaqc <- function(directory,
 {
   
 directory = "Assay Experiment"
-rack_map = "Assay Experiment/Round1_chlarackmap.xlsx" #direct to my rack map, include column for volume filtered
+rack_map = "Assay Experiment/chlarackmap.xlsx" #direct to my rack map, include column for volume filtered
 final_vol_extract = 6
 blank_vol_filt = 500
 outfile = "Assay Experiment/Filt_chla_L1.csv" #name of the file and where it will save to
