@@ -371,7 +371,7 @@ raw_df2 <- raw_df2|>
                   "before_acid_abs_384" = "WL384.0"
     )|>
     unique() %>% 
-    select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose, Vol_filt_mL, Final_vol_extract_mL,
+    select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose, Vol_filt_mL, Final_vol_extract_mL, Day, Assay_num,
            before_acid_abs_750:before_acid_abs_384, Flag_Chla_ugL, Flag_Pheo_ugL, Notes)
   
   #MAKE SURE ALL THESE LINE UP COLUMN NAMES
@@ -392,7 +392,7 @@ raw_df2 <- raw_df2|>
                   "after_acid_abs_384" = "WL384.0"
     )|>
     unique() %>% 
-    select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose,Vol_filt_mL, Final_vol_extract_mL,
+    select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose,Vol_filt_mL, Final_vol_extract_mL, Day, Assay_num,
            after_acid_abs_750:after_acid_abs_384,Flag_Chla_ugL, Flag_Pheo_ugL, Notes)
   
   
@@ -416,7 +416,7 @@ raw_df2 <- raw_df2|>
   # Join the two data frames together
   
   comb3 <- full_join(before_comb2, after_comb2, 
-                     by=c("Num_ID", "Date_processed", "samp_type", "Flask", "Dose",
+                     by=c("Num_ID", "Date_processed", "samp_type", "Flask", "Dose", "Day", "Assay_num",
                           "Vol_filt_mL", "Final_vol_extract_mL", "Flag_Chla_ugL", "Flag_Pheo_ugL", "Notes")) 
   
   ### 5.2 Calculate the concentration of Chla in ugL 
@@ -492,6 +492,8 @@ raw_df2 <- raw_df2|>
     select(Sample.ID.x,
            Flask,
            Dose,
+           Day, 
+           Assay_num,
            before_acid_abs_750,
            before_acid_abs_664,
            chla_extract,
@@ -648,3 +650,4 @@ raw_df2 <- raw_df2|>
   } # ends the if statement if there are no new observations
   
 } # ends the function
+
