@@ -8,17 +8,15 @@
 # 16 Jun 24- add in historical file, add a start and end date filter, add in time of sample
 # 24 Sept 24 - round all numeric columns to 4 digits
 # 25 Apr Fixed bugs and added warnings
-# 
+# 23 Jul 2025 Adrienne Breef-Pilz and Maria Popescu edited to make work for data from Assay experiment
 
 # Things the script does: 
 # 1. Read in Maintenance log and read in raw chla file from the spec
-#   Put in the right format for processing
-# 2. Read in the filtering log and rack map
+# 2. Put in the right format for processing
 # 3. Merge everything together
-# 4. Maintenance log to flag or remove issues
-# 5. Process with a script based on BNN Excel script
-# 6. Further QAQC processing
-# 7. Save files
+# 4. Process with a script based on BNN Excel script
+# 5. Further QAQC processing
+# 6. Save files
 
 #filt_chla_qaqc from L1 script 17 April 2025
 #updating code and adding a section to return mismatches as needed
@@ -45,40 +43,7 @@ end_date = NULL
  #packages
   pacman::p_load(tidyverse, gsheet,arsenal, readxl)
   
-  #### 1. Read in Maintenance file and the Raw files from the spec 
-  ### 1.1 Read in Maintenance file #### 
-  
- 
-  ## check how maintenance log is read in/entered
- # log_read <- read_csv(maintenance_file, col_types = cols(
-#    .default = col_character(),
-#    Date_processed = col_date("%Y-%m-%d"),
-#    Sample_date = col_date("%Y-%m-%d"),
-#   flag = col_integer()))
-  
-#print(("Warning! the following rows from the maintenance log may cause you trouble. Do you have something other than NA or a date in the SampleDate column?"))
-#print(problems(log_read))
-
-#  log <- log_read
-  
-  # filter out observations in log based on start and end date
-  # Filter maintenance log based on start and end times
-#  if(!is.null(end_date)){
- #   log <- log_read |>
-  #    filter(Sample_date<= end_date)
-#  }else{
-#    log <- log_read
-#  }
-
-
-#  if(!is.null(start_date)){
-#    log <- log_read %>%
-#      filter(Sample_date >= start_date)
-#  }else{
-#    log <- log_read
-#  }
-  
-  #### 1.2 Read in files from the spec that are in a folder. 
+  #### 1.1 Read in files from the spec that are in a folder. 
   
 #  print("compiled data frame of absorbances from spec")
   
@@ -126,10 +91,9 @@ end_date = NULL
                Num_ID = as.numeric(Num_ID)) 
       
       return(data2)
-      }
-      
-    
-   # Use the function to make a data frame of raw absorbance from the spec
+  }
+  
+  # Use the function to make a data frame of raw absorbance from the spec
   # use purr to read in all the files using the function above
   files<-list.files(path= directory,pattern=".txt", full.names=TRUE)
     
@@ -161,22 +125,7 @@ end_date = NULL
       Final_vol_extract_mL = final_vol_extract
       # New column based on Flask condition
     )
-  #maybe check to see if i need to add flask and dose
-
-  # check if there are any dups in the rack map
- # rack_dup <- rack_map2 |>
-#    select(Date_processed, ResSite, Depth, Rep, Sample_date, dil_factor)|>
-#    filter(grepl("^20", Sample_date))
-  
- # check_rack_dup <- rack_dup[duplicated(rack_dup), ]
-  
-#  if(nrow(check_rack_dup)>0){
-#    warning("There are duplicates in the rack map and the duplicate might not be labeled. See below:")
-#    print(check_rack_dup)
-#  }
-  
-  
-  
+ 
   # Join together by Date_processed and Num_ID
   # perform full_join based on multiple columns on the date processed, the number ID and if there is a dilution factor. 
   df3 <- full_join(out.file, rack_map2, by=c('Date_processed'='Date_processed', 'Num_ID'='Num_ID'))|>
@@ -187,78 +136,6 @@ end_date = NULL
     mutate(
       samp_type = ifelse(str_detect(Flask, "^blank")==T & !is.na(Flask), "eth_blank", samp_type))
                          #ifelse(str_detect(Flask, "^eth")==T, "eth_blank", samp_type)))
-  
-  
-  # # Get sample dates in the right format
-  # res_samp2 <- df3%>%
-  #   mutate(
-  #     Sample_date2= ifelse(grepl("^20", Sample_date)==T, Sample_date, NA),
-  #     Sample_date = as.Date(Sample_date2))|> # put date in format
-  #     select(-Sample_date2)
-
- # Get the minimum sample date from the processed samples 
-#  a <- res_samp2|>
-#    drop_na(Sample_date)
-  
-#min_samp_date <- min(a$Sample_date)
-
-  ### 2.2 read in filtering log 
-  
-  #filtering_log <- gsheet::gsheet2tbl(filtering_log)
-  
-  # Clean up the data frame
-  #filtering_log2 <- filtering_log %>%
-  #  mutate(
-  #    Sample_date = lubridate::ymd(`Sample Date`),
-      #Sample_date = parse_date_time(`Sample Date`, orders = c('dBy')),
-  #    Vol_filt_mL = as.numeric(`Volume filtered (mL)`),
-  #    Final_vol_extract_mL = final_vol_extract,
-  #  ResSite = sub("-", "", ResSite),
-  #  samp_type = "res_samp")|>
-  #  drop_na(Sample_date)|>
-  #  filter(Sample_date >= min_samp_date)|>
-  #  select(ResSite, Depth, Sample_date, Rep, Vol_filt_mL, Final_vol_extract_mL, samp_type,Comments)
-  
-  # check if there are any duplicates in the filtering log
-  #filt_dup <- filtering_log2 |>
-  #  select(ResSite, Depth, Sample_date, Rep, Vol_filt_mL)
-  
-#  check_filt_dup <- filt_dup[duplicated(filt_dup), ]
-  
-#  if(nrow(check_filt_dup)>0){
-#    warning("There are unlabeled duplicates in the filtering log. See below:")
-#    print(check_filt_dup)
-#  }
-  
-  
-  # check if there are any samples after 2022 that are missing a filtered volume in the log
- # if(nrow(filtering_log|>filter(`Sample Date`>"2023-01-01")|>filter(is.na(`Volume filtered (mL)`)))>0){
-#    warning("The following samples don't have a filtered volume in the filtering log and will be removed from the log.")
-#    print(filtering_log|>filter(`Sample Date`>"2023-01-01")|>filter(is.na(`Volume filtered (mL)`)))
-#  }
-  
-  ### 3. Combine with the filtering log 
-#  print("combine samples with the filtering log")
-  
-#  comb <- left_join(res_samp2, filtering_log2, 
-  #                  by=c("Sample_date"="Sample_date", "ResSite"="ResSite", "Rep"="Rep", "Depth"="Depth", "samp_type"="samp_type")) |>
- #   mutate(
-   #   ResSite = ifelse(samp_type == 'eth_blank', NA, ResSite),
-    #  Sample_date = ifelse(samp_type == 'eth_blank', NA, Sample_date),
-     # Sample_date = as.Date(Sample_date, origin="1970-01-01")
-    #)
-    
-#  print("There will be multiple matches and that is ok")
-  ## the following reservoir samples don't have a filtered volume. 
-  
-#  if(nrow(comb|>filter(samp_type == 'res_samp' & is.na(Vol_filt_mL)))>0){
- #   warning("The following Reservoir samples are missing the amount of water filtered. Check the filtering log and check if sample has been mislabeled. If missing, volume filtered should also have been recorded on the frozen filter.")
-    
-  #  print(comb |>
-#            filter(samp_type == 'res_samp' & is.na(Vol_filt_mL))|>
-#            select(Date_processed, Sample_ID, ResSite, Depth, Rep, Sample_date, Vol_filt_mL))
-#  }
-  
   
   # add the vol filt and final vol used for the ethanol samples 
   # We use 500 mL for volume filtered for the ethanol blanks
@@ -281,7 +158,6 @@ end_date = NULL
     
     comb2 <- comb2|>
       drop_na(WL750.0)
-    
   }
   
   ### 5. Get the Chla concentration from wavelengths from Spec 
@@ -323,18 +199,6 @@ check_raw23 <- raw_df2|>
 
 sd_raw <- check_raw23[duplicated(check_raw23),]
 
-# ert <- raw_df2[raw_df2$Sample_date %in% sd_raw$Sample_date &
-#                  raw_df2$Depth %in% sd_raw$Depth &  
-#                  raw_df2$Sample_ID %in% sd_raw$Sample_ID, ]
-
-# if(nrow(sd_raw)>0){
-#   warning("There are duplicates and mistyped Sample.IDs that need to be added to the maintenance log. See above for the duplicated files. Make sure there are only one before and one after acid for each sampling date and site.")
-#   
-#   print(sd_raw|>
-#           select(Sample.ID, ResSite, Depth, Date_processed, Sample_date, timing, WL750.0))
-# }
-
-
 ## Check the turbidity absorbance and print out values above 0.005 and save the files
 
 check_turbidity <- raw_df2|>
@@ -349,9 +213,7 @@ if (nrow(check_turbidity)>0){
   print(n = nrow(check_turbidity), check_turbidity)
 }
 
-
   # The calculations are from BRN Chla processing excel sheet
-  
   ### 5.1 Separate the wavelength by before acid and after and then merge together wider 
 
 raw_df2 <- raw_df2|>
@@ -375,9 +237,7 @@ raw_df2 <- raw_df2|>
            before_acid_abs_750:before_acid_abs_384, Flag_Chla_ugL, Flag_Pheo_ugL, Notes)
   
   #MAKE SURE ALL THESE LINE UP COLUMN NAMES
-  
   # Now do it for after acid readings
-  
 
   after_comb2 <- raw_df2%>%
     filter(Flag_Chla_ugL!=2)%>%
@@ -394,9 +254,7 @@ raw_df2 <- raw_df2|>
     unique() %>% 
     select(Sample.ID, Num_ID, Date_processed, samp_type, Flask, Dose,Vol_filt_mL, Final_vol_extract_mL, Day, Assay_num,
            after_acid_abs_750:after_acid_abs_384,Flag_Chla_ugL, Flag_Pheo_ugL, Notes)
-  
-  
-  
+
   ### Add a check about if there are uneven before and after sample numbers
   check_bef <- before_comb2|>
     select(Date_processed, samp_type,Flask, Dose, Date_processed, Vol_filt_mL)
@@ -406,13 +264,12 @@ raw_df2 <- raw_df2|>
 
   check_df <- summary(arsenal::comparedf(check_bef, check_aft, by = c("Date_processed", "samp_type","Flask", "Dose", "Date_processed", "Vol_filt_mL")))
 
-  
   if(nrow(check_df$obs.table)>0){
     warning("There are uneven number of samples in the before or after data frames. Check the output to see where the issue is. There should be the same number of samples in each data frame.")
 
     print(check_df$obs.table)
   }
-  # 
+  
   # Join the two data frames together
   
   comb3 <- full_join(before_comb2, after_comb2, 
