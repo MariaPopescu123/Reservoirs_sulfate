@@ -1,12 +1,14 @@
 #visualizing chlorophyll
 
-df <- read.csv("Assay Experiment/csvs/Assay_1_chla.csv")
+df <- read.csv("Assay Experiment/csvs/All_Assays_chla.csv")
 
 
 #Pheo is a degradation product of chlorophyll
-df1 <- df|>
-  select(Flask, Dose, Chla_ugL, Pheo_ugL)|>
-  mutate(Dose = ifelse(Flask %in% c("init1", "init2"), "init", Dose))
+df1 <- df |>
+  select(Flask, Dose, Chla_ugL, Pheo_ugL, Assay_num) |>
+  mutate(Dose = ifelse(Flask %in% c("init1", "init2"), "init", Dose)) |>
+  filter(Assay_num == 2) |>
+  mutate(Flask = as.numeric(Flask))
 
 # Prepare data
 boxplot_data <- df1 %>%
