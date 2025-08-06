@@ -7,7 +7,7 @@ df <- read.csv("Assay Experiment/csvs/All_Assays_chla.csv")
 df1 <- df |>
   select(Flask, Dose, Chla_ugL, Pheo_ugL, Assay_num) |>
   mutate(Dose = ifelse(Flask %in% c("init1", "init2"), "init", Dose)) |>
-  filter(Assay_num == 2) |>
+  filter(Assay_num == 1) |>
   mutate(Flask = as.numeric(Flask))
 
 # Prepare data
@@ -71,3 +71,4 @@ ggplot(boxplot_data, aes(x = Dose, y = Pheo_ugL)) +
     y = "Pheophytin (µg/L)"
   ) +
   theme_minimal()
+
