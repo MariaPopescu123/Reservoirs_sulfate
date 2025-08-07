@@ -12,6 +12,8 @@ library(lubridate)
 library(ggplot2)
 library(dplyr)
 library(lubridate)
+library(readxl)
+
 
 #here we go
 #change the depth that you want to see
@@ -32,15 +34,8 @@ library(lubridate)
 #change the depth and year that you want to see
 #depths for fcr: epi: 0.1, 1.6, meta: 3.8, 5.0, hypo: 6.2, 8.0, 9.0
 
-dt0 <- read.csv("sulfate_first_run.csv")
-dtNEW <- read.csv("sulfate_second_run.csv")
+dtNEW <- read.csv("Reservoir monitoring/sulfate_combined.csv")
 
-dt0 <- dt0 |>
-  mutate(
-  Date = as.Date(Date),
-  SO4_ugL = as.numeric(SO4_ugL)
-  ) |>
-  filter(!is.na(SO4_ugL))
 
 dtNEW <- dtNEW |>
   mutate(
