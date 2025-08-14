@@ -36,17 +36,21 @@ library(readxl)
 
 dtNEW <- read.csv("Reservoir monitoring/sulfate_combined.csv")
 
+library(stringr)
 
-dtNEW <- dtNEW |>
+dt0 <- dtNEW |>
   mutate(
     Date = as.Date(Date, format = "%m/%d/%Y"),
-    SO4_ugL = as.numeric(SO4_ugL)
+    SO4_ugL = as.numeric(SO4_ugL), 
+    Depth_m = as.numeric(Depth_m), 
+    Reservoir = if_else(str_detect(Reservoir, "^BVR"), "BVR", "FCR") #just in case it's typed weird with spaces 
   ) |>
-  filter(!is.na(SO4_ugL))
+  filter(!is.na(SO4_ugL))|>
+  filter(year(Date) == 2025) #change this here for whichever year you would like to see
 
 #plotting FCR sulfate  
 FCR <- dt0|>
-  filter(Reservoir == "FCR")%>%
+  filter(Reservoir == "FCR", Site == 50)%>%
   mutate(limnion = case_when(
     Depth_m <= 1.6 ~ "Epilimnion",
     Depth_m > 1.6 & Depth_m < 6 ~ "Metalimnion",
@@ -55,7 +59,7 @@ FCR <- dt0|>
   mutate(limnion = factor(limnion, levels = c("Epilimnion", "Metalimnion", "Hypolimnion")))
 
 
-#plotFCR sulfate concentrations
+#plot FCR sulfate concentrations
 ggplot(data = FCR, aes(x = Date, y = SO4_ugL, color = as.factor(Depth_m))) +
   geom_point() +
   facet_grid(rows = vars(limnion), scales = "free_y") +
@@ -75,7 +79,7 @@ ggplot(data = FCR, aes(x = Date, y = SO4_ugL, color = as.factor(Depth_m))) +
 #depths for bvr: epi: 0.1, meta: 3.0 hypo: 6.0, 9.0
 
 BVR <- dt0|>
-  filter(Reservoir == "BVR")%>%
+  filter(Reservoir == "BVR", Site == 50)%>%
   mutate(limnion = case_when(
     Depth_m <= 1.6 ~ "Epilimnion",
     Depth_m > 1.6 & Depth_m < 7 ~ "Metalimnion",

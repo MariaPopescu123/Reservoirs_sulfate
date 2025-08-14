@@ -10,9 +10,8 @@ assay_sulfate <- assay_sulfate %>%
   filter(!is.na(SO4)) %>%
   mutate(SO4 = round(SO4, 0))%>%
   mutate(Dose = ifelse(Flask %in% c("init1", "init2"), "init", Dose))|>
-  filter(Round == 1)|>
+  filter(Round == 2)|>
   mutate(Day = as.factor(Day))
-
 
 
 
