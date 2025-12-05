@@ -528,3 +528,39 @@ ggplot(frame2024_SO4, aes(x = Date)) +
   theme_minimal() +
   scale_color_manual(values = c("SO4 (ug/L)" = "orange", "Phytos (ug/L)" = "black"))  # Custom color scale
 
+
+#----iron----
+
+metals <- read.csv("https://pasta.lternet.edu/package/data/eml/edi/455/9/9a072c4e4af39f96f60954fc4f7d8be5") 
+
+metals2<- metals |>
+  mutate(FeIII = TFe_mgL - SFe_mgL)|>
+  mutate(Date = as.Date(DateTime))
+
+this <- heatmap(metals2, "FCR", 2016, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
+ggsave(filename = "Reservoir monitoring/Figs/FCR_FeIIIheatmap2016.png", 
+       plot = this, 
+       width = 5, 
+       height = 5, 
+       dpi = 500)
+
+this <- heatmap(metals2, "FCR", 2024, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
+ggsave(filename = "Reservoir monitoring/Figs/FCR_FeIIIheatmap2024.png", 
+       plot = this, 
+       width = 5, 
+       height = 5, 
+       dpi = 500)
+
+this <- heatmap(metals2, "BVR", 2016, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
+ggsave(filename = "Reservoir monitoring/Figs/BVR_FeIIIheatmap2016.png", 
+       plot = this, 
+       width = 5, 
+       height = 5, 
+       dpi = 500)
+
+this <- heatmap(metals2, "BVR", 2024, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
+ggsave(filename = "Reservoir monitoring/Figs/BVR_FeIIIheatmap2024.png", 
+       plot = this, 
+       width = 5, 
+       height = 5, 
+       dpi = 500)
