@@ -289,19 +289,6 @@ ggsave(filename = "Reservoir monitoring/Figs/BVRRSO4heatmap2025.png",
        dpi = 500)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ####2024 1.6m all####
 pHframe2024 <- ysi_profiles|>
   mutate(Date = as_date(DateTime))|>
