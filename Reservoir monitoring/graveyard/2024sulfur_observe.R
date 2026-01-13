@@ -89,7 +89,6 @@ BVR <- dt0|>
   )) %>%
   mutate(limnion = factor(limnion, levels = c("Epilimnion", "Metalimnion", "Hypolimnion")))
 
-
 #plotFCR sulfate and iron concentrations
 ggplot(data = BVR, aes(x = Date, y = SO4_ugL, color = as.factor(Depth_m)))+
   geom_point()+
@@ -102,7 +101,6 @@ ggplot(data = BVR, aes(x = Date, y = SO4_ugL, color = as.factor(Depth_m)))+
         strip.text.y = element_text(size = 12))
 
 #now to have the y axis be the same scale
-
 ggplot(data = FCR, aes(x = Date, y = SO4_ugL, color = as.factor(Depth_m))) +
   geom_point() +
   facet_grid(rows = vars(limnion)) +  # no more scales = "free_y"
@@ -226,14 +224,14 @@ heatmap <- function(fp_data, reservoir, year, z, unitz, chlorophyll_data = NA, m
 
 ####------2024 heatmap----####
 FCRSO4heatmap2024 <- heatmap(dt0, "FCR", 2024, "SO4_ugL", "ugL", max_legend_value = 2500)
-ggsave(filename = "Reservoir monitoring/Figs/FCRSO4heatmap2024.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/FCRSO4heatmap2024.png", 
        plot = FCRSO4heatmap2024, 
        width = 5, 
        height = 5, 
        dpi = 500)
 
 BVRRSO4heatmap2024 <- heatmap(dt0, "BVR", 2024, "SO4_ugL", "ugL", max_legend_value = 2500)
-ggsave(filename = "Reservoir monitoring/Figs/BVRRSO4heatmap2024.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/BVRRSO4heatmap2024.png", 
        plot = BVRRSO4heatmap2024, 
        width = 5, 
        height = 5, 
@@ -249,14 +247,14 @@ dt1<- dt1|>
   mutate(Date = as_date(DateTime))
 
 FCRSO4heatmap2016 <- heatmap(dt1, "FCR", 2016, "SO4_ugL", "ugL", max_legend_value = 2500)
-ggsave(filename = "Reservoir monitoring/Figs/FCRSO4heatmap2016.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/FCRSO4heatmap2016.png", 
        plot = FCRSO4heatmap2016, 
        width = 5, 
        height = 5, 
        dpi = 500)
 
 BVRSO4heatmap2016 <- heatmap(dt1, "BVR", 2016, "SO4_ugL", "ugL", max_legend_value = 2500)
-ggsave(filename = "Reservoir monitoring/Figs/BVRRSO4heatmap2016.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/BVRRSO4heatmap2016.png", 
        plot = BVRSO4heatmap2016, 
        width = 5, 
        height = 5, 
@@ -275,18 +273,21 @@ dt0 <- dtNEW |>
 
 
 FCRSO4heatmap2025 <- heatmap(dt0, "FCR", 2025, "SO4_ugL", "ugL", max_legend_value = 2500)
-ggsave(filename = "Reservoir monitoring/Figs/FCRSO4heatmap2025.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/FCRSO4heatmap2025.png", 
        plot = FCRSO4heatmap2025, 
        width = 5, 
        height = 5, 
        dpi = 500)
 
 BVRRSO4heatmap2025 <- heatmap(dt0, "BVR", 2025, "SO4_ugL", "ugL", max_legend_value = 2500)
-ggsave(filename = "Reservoir monitoring/Figs/BVRRSO4heatmap2025.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/BVRRSO4heatmap2025.png", 
        plot = BVRRSO4heatmap2025, 
        width = 5, 
        height = 5, 
        dpi = 500)
+
+
+
 
 
 ####2024 1.6m all####
@@ -525,21 +526,21 @@ metals2<- metals |>
   mutate(Date = as.Date(DateTime))
 
 this <- heatmap(metals2, "FCR", 2016, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
-ggsave(filename = "Reservoir monitoring/Figs/FCR_FeIIIheatmap2016.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/FCR_FeIIIheatmap2016.png", 
        plot = this, 
        width = 5, 
        height = 5, 
        dpi = 500)
 
 this <- heatmap(metals2, "FCR", 2024, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
-ggsave(filename = "Reservoir monitoring/Figs/FCR_FeIIIheatmap2024.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/FCR_FeIIIheatmap2024.png", 
        plot = this, 
        width = 5, 
        height = 5, 
        dpi = 500)
 
 this <- heatmap(metals2, "BVR", 2016, "FeIII", "mgL" , chlorophyll_data = NA, max_legend_value = NA) 
-ggsave(filename = "Reservoir monitoring/Figs/BVR_FeIIIheatmap2016.png", 
+ggsave(filename = "Reservoir monitoring/Figs/heatmaps/BVR_FeIIIheatmap2016.png", 
        plot = this, 
        width = 5, 
        height = 5, 
